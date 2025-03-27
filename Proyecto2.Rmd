@@ -1,16 +1,20 @@
 ---
 title: "Análisis Exploratorio de Datos"
-author: "Camilo Andrés Morales Flores, Rubén Saiz López, Juan José Martínez Aguiló, Mateo Vilar Cano e Isaac Herranz Blasco"
+author: Camilo Andrés Morales Flores, Rubén Saiz López, Juan José Martínez Aguiló,
+  Mateo Vilar Cano e Isaac Herranz Blasco
 date: "`r Sys.Date()`"
-output: 
+output:
   html_document:
-    toc: TRUE
+    toc: true
     toc_float:
-      collapsed: FALSE
-      smooth_scroll: TRUE
+      collapsed: false
+      smooth_scroll: true
 ---
+
 # Lectura de datos y librerias
+
 Vamos a leer las librerias necesarias para seguir con el análisis de datos y las bases sobre las que vamos a trabajar.
+
 ```{r selección muestra, message= FALSE, warning=FALSE}
 library(readxl);
 library(dplyr);
@@ -21,16 +25,22 @@ library(knitr);
 IE <- read_excel("union_europea_IE.xlsx", col_types = 'text');
 PIB <- read_excel("union_europea_PIB.xlsx", col_types = 'text');
 ```
+
 ## Muestra de datos
+
 Se muestran los datos originales sobre los que vamos a trabajar.
+
 ```{r Mostrar BBDD, echo= FALSE}
 knitr::kable(head(PIB), caption= 'Datos PIB original')
 knitr::kable(head(IE), caption= 'Datos IE original')
 ```
 
 # Análisis de calidad
+
 ## Descarte de variables
+
 Antes de empezar con el análisis de datos ya sabemos que vamos a descartar unas variables de la base de datos que no interesan como son: DATAFLOW, LAST_UPDATE, freq, unit, OBS_FLAG y CONF_STATUS
+
 ```{r Descarte de variables}
 
 PIB2 <- PIB[, 4:9];
@@ -40,8 +50,11 @@ IE2 <- IE[, 4:8];
 knitr::kable(head(IE2), caption= 'Variables empleadas IE')
 
 ```
+
 ## Tipo de variables
-Describimos de qué tipo son las variables de cada base de datos  
+
+Describimos de qué tipo son las variables de cada base de datos
+
 ```{r Descripción Variables}
 descIE = data.frame("variable" = colnames(IE2),
                     "tipo" = c('text', rep('categorical',2), rep("numerical", 2)),
@@ -53,7 +66,8 @@ descPIB = data.frame("variable" = colnames(PIB2),
 
 ```
 
-Lo mostramos en estas tablas:  
+Lo mostramos en estas tablas:
+
 ```{r Plotear tipo vars, echo= FALSE}
 
 knitr::kable(descIE,caption= 'Variables IE')
@@ -64,8 +78,10 @@ knitr::kable(descPIB,caption= 'Variables PIB')
 # Análisis Exploratorio
 
 ## Distribución de valores
-Se analizan las variables numéricas de ambas bases de datos con las variables ya seleccionadas.( Se empieza con el resumen básico que muestra la distribución de los datos (media, mediana, cuartiles...)  
+
+Se analizan las variables numéricas de ambas bases de datos con las variables ya seleccionadas.( Se empieza con el resumen básico que muestra la distribución de los datos (media, mediana, cuartiles...)\
 Variables numéricas de IE:
+
 ```{r Variables constantes o casi constantes IE}
 ## Numericas
 IEnumeric_columns <- descIE$variable[descIE$tipo == 'numerical']
@@ -73,7 +89,9 @@ IE2[, IEnumeric_columns] <- lapply(IE2[, IEnumeric_columns], as.numeric)
 knitr::kable(summary(IE2[, IEnumeric_columns]), caption= 'Resumen Variables Numéricas IE')
 
 ```
-Para IE, solo tenemos dos variables numéricas que son el periodo de tiempo y el OBS_VALUE que indica el valor de la transacción. Vemos que tenemos valores faltantes en el valor de las transacciones. Observando que el valor de la media es superior al tercer cuartil, deducimos que la distribución de las transacciones están sesgadas a la izquierda (más transacciones de menor valor), para comprobarlo vamos a realizar un gráfico box and whisker y un histograma:  \
+
+Para IE, solo tenemos dos variables numéricas que son el periodo de tiempo y el OBS_VALUE que indica el valor de la transacción. Vemos que tenemos valores faltantes en el valor de las transacciones. Observando que el valor de la media es superior al tercer cuartil, deducimos que la distribución de las transacciones están sesgadas a la izquierda (más transacciones de menor valor), para comprobarlo vamos a realizar un gráfico box and whisker y un histograma:\
+
 ```{r Graficas IE, echo= FALSE}
 
 IE2$OBS_VALUE <- as.numeric(IE2$OBS_VALUE)
@@ -84,9 +102,11 @@ hist(IE2$OBS_VALUE, nclass = 25, main = '')
 title('Histograma Valor Transacciones IE')
 
 ```
- Analizando las gráficas se confirman las observaciones.  
+
+Analizando las gráficas se confirman las observaciones.
 
 Variables Numéricas de PIB:
+
 ```{r Variables constantes o casi constantes PIB}
 ## Numericas
 
@@ -95,7 +115,9 @@ PIB2[, PIBnumeric_columns] <- lapply(PIB2[, PIBnumeric_columns], as.numeric)
 knitr::kable(summary(PIB2[, PIBnumeric_columns]), caption= 'Resumen Variables Numéricas PIB')
 
 ```
-Observando los valores de la media y del tercer cuartil vemos que se repite el mismo fenómeno en ambas bases de datos, cuanto mayor es el valor de la transacción, menor es la frecuencia, es decir, está sesgada a la izquierda, con más cantidad de datos de menor valor. Lo vamos a comprobar con un box and whisker y un histograma: \ 
+
+Observando los valores de la media y del tercer cuartil vemos que se repite el mismo fenómeno en ambas bases de datos, cuanto mayor es el valor de la transacción, menor es la frecuencia, es decir, está sesgada a la izquierda, con más cantidad de datos de menor valor. Lo vamos a comprobar con un box and whisker y un histograma:  
+
 ```{r GRÁFICAS PIB, echo= FALSE}
 PIB2$OBS_VALUE <- as.numeric(PIB2$OBS_VALUE)
 p2 <- boxplot(PIB2[,"OBS_VALUE"], horizontal = TRUE)
@@ -105,7 +127,8 @@ p1 <- hist(PIB2$OBS_VALUE, nclass= 30, main= '')
 title('Histograma Valor Transacciones PIB')
 
 ```
-Se confirman las observaciones con ambas gráficas que muestran una mayor frecuencia de los datos cuando las transacciones son de menor valor. 
+
+Se confirman las observaciones con ambas gráficas que muestran una mayor frecuencia de los datos cuando las transacciones son de menor valor.
 
 ```{r Eliminación grupos sobrantes}
 PIB3 <- PIB2[PIB2$unit %in% c('Current prices, million euro', 'Percentage of gross domestic product(GDP)','Percentage of total'),]
@@ -143,6 +166,7 @@ title('Histograma Valor Transacciones IE')
 ## Valores Faltantes
 
 Vamos a observar los valores faltantes de la base de datos IE por cada variable tanto en cantidad como en porcentaje sobre el total.
+
 ```{r Valores Faltantes IE, echo= FALSE}
 # Calcular el número de valores NA por columna
 numNA <- apply(IE2, 2, function(x) sum(is.na(x)))
@@ -159,8 +183,10 @@ tablaNA_faltantes1 <- tablaNA[tablaNA$numNA > 0, ]
 knitr::kable(tablaNA_faltantes1, caption= 'Valores faltantes IE')
 
 ```
-  Observamos que solo hay valores faltantes en la variable obs_value, en concreto 320, que es un 0.44% sobre el total. Como la variable que queremos estudiar es esta, no nos interesa mantener las observaciones sobre las cuales no tenemos esa información, más adelante tras analizar la base de datos PIB, eliminaremos aquellas observaciones en las que no se tenga información en la variable OBS_VALUE.  
-  Ahora vamos a observar los valores faltantes de la base de datos PIB:  
+
+Observamos que solo hay valores faltantes en la variable obs_value, en concreto 320, que es un 0.44% sobre el total. Como la variable que queremos estudiar es esta, no nos interesa mantener las observaciones sobre las cuales no tenemos esa información, más adelante tras analizar la base de datos PIB, eliminaremos aquellas observaciones en las que no se tenga información en la variable OBS_VALUE.\
+Ahora vamos a observar los valores faltantes de la base de datos PIB:
+
 ```{r Valores Faltantes PIB}
 # Calcular el número de valores NA por columna
 numNA <- apply(PIB2, 2, function(x) sum(is.na(x)))
@@ -178,12 +204,96 @@ knitr::kable(tablaNA_faltantes2, caption= 'Valores Faltantes PIB')
 
 ```
 
-  En esta base de datos encontramos 6309 casos faltantes únicamente en la variable OBS_VALUE, aunque pueda parecer una cantidad excesiva es únicamente el 0.81 % del total, como se repite la situación en la que es esta la variable que queremos estudiar, vamos a eliminar aquellas observaciones en las que no se tenga esta información.
+En esta base de datos encontramos 6309 casos faltantes únicamente en la variable OBS_VALUE, aunque pueda parecer una cantidad excesiva es únicamente el 0.81 % del total, como se repite la situación en la que es esta la variable que queremos estudiar, vamos a eliminar aquellas observaciones en las que no se tenga esta información.
 
-## Eliminación Valores Faltantes 
+## Eliminación Valores Faltantes
+
+Partiendo de que no nos interesan aquellas filas en las que falte aparezcan valores faltantes, debido a que la carencia de información en alguna de todas las variables, la observación no nos sirve. Se eliminan todas las filas en las que falte cualquier tipo de información.
+
 ```{r Eliminación Valores Faltantes}
 PIB3 <- PIB3[!is.na(PIB3$OBS_VALUE),]
 IE3 <- IE3[!is.na(IE3$OBS_VALUE),]
 
 ```
 
+# Indices de Libertad
+
+## Lecutra de datos  
+
+Base de datos independiente de las anteriores que añadiremos al estudio para correlacionar las políticas del país con su rendimiento económico. A esta base de datos le sustituiremos los valores nulos por 0, no eliminaremos información de paises por los valores faltantes.
+
+Se muestra la base de datos original:
+
+```{r Leer Base de datos, echo= FALSE}
+Indices <- read_excel("indice_libertad.xlsx");
+cat('Hay',nrow(Indices),'paises inicialmente')
+knitr::kable(head(Indices),caption= 'Muestra Índice Libertad')
+```
+
+## Tratado valores faltantes
+
+Se añaden 0 a los valores faltantes, y mostramos la cabecera del resultado.
+
+```{r Corroborar Eliminación valores faltantes, echo= FALSE}
+Indices3 <- Indices
+Indices3[is.na(Indices3)] <- 0
+cat('Hay',nrow(Indices)-nrow(Indices3),'paises con valores faltantes')
+knitr::kable(head(Indices3))
+```
+
+## Exportación Bases de Datos
+
+Antes de seguir con el estudio, se guarda la base de datos modificada con la que se sigue en formato xlsx.
+
+```{r Pasar a Excel, eval= FALSE}
+writexl::write_xlsx(Indices3, 'Indices_libertad2.xlsx')
+```
+
+# Commodities
+
+Se vuelve a cambiar de base de datos y ahora trataremos la que muestra los datos de exportación e importación de cada país. La utilizaremos para comprobar si el índice de libertad, y el PIB tiene relación con el nivel de importaciones y exportaciones.  
+
+## Lectura de Bases de datos
+
+Se empieza con la lectura de las bases de datos.   
+
+```{r Leer Commodities, echo= FALSE}
+# Lista de nombres de las hojas en el archivo Excel
+hojas <- excel_sheets("commodity_IE.xlsx");
+
+# Leer todas las hojas y almacenarlas en una lista de dataframes
+lista_dataframes <- lapply(hojas, function(nombre_hoja) {
+  read_excel("commodity_IE.xlsx", sheet = nombre_hoja, col_types = 'text')
+});
+
+# Asignar nombres a los dataframes en la lista
+names(lista_dataframes) <- hojas;
+head(hojas)
+```
+
+## Tratado de variables
+
+Se empieza a borrar aquellas variables que tenemos claro que queremos descartar, que son: 'comm_code', 'quantity_name', 'quantity' y 'flow'.  
+```{r Tratar variables}
+# Variables a quitar
+variablesQuitar <- c("comm_code", "quantity_name", "quantity","flow");
+
+# Aplicar la eliminación de variables a cada dataframe en la lista
+lista_dataframes_filtrada <- lapply(lista_dataframes, function(df){df[, !(names(df) %in% variablesQuitar)]});
+
+COMEXP = lista_dataframes_filtrada[[1]]
+COMIMP = lista_dataframes_filtrada[[2]]
+```
+
+## Filtrado de casos
+
+De la información otorgada por esta base de datos, solo nos informa de cada país por específico, por eso eliminamos los casos de 'EU-28', y el de la suma de todos las commodities 'ALL COMMODITIES'.  
+```{r Tratar casos}
+# Filtrar COMEXP
+COMEXP <- COMEXP[!(COMEXP$commodity == "ALL COMMODITIES" & COMEXP$country_or_area == "EU-28"), ];
+
+COMIMP <- COMIMP[!(COMIMP$commodity == "ALL COMMODITIES" & COMIMP$country_or_area == "EU-28"), ];
+
+head(COMEXP)
+head(COMIMP)
+```
